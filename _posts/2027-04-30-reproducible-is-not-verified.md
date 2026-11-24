@@ -138,7 +138,7 @@ For the PCC, $$B$$ is by far the most anomalous observation, and $$A$$ is unrema
     </div>
 </div>
 <div class="caption">
-    \(A\) and \(B\) displayed with the thresholds of both eigenvectors. In this case \(\mathbf{e}_2\) is displayed. Code: <a href="https://anonymous.4open.science/r/iclr_2027_blogpost_pca_code-5E5D/blog_post.ipynb">blog_post.ipynb, Section 3</a>.
+    \(A\) and \(B\) displayed with the thresholds of both eigenvectors. In this case \(\mathbf{e}_2\) is displayed. Code: <a href="https://anonymous.4open.science/r/iclr_2027_blogpost_pca_code-5E5D/blog_post.ipynb">blog_post.ipynb, Section 1</a>.
 </div>
 
 These observations have a single cause, which we explain first. 
@@ -182,7 +182,7 @@ The following figure illustrates this on two correlated features ($$\rho = 0.9$$
     </div>
 </div>
 <div class="caption">
-    Anomalies on both sides of the centroid that break the correlation. Left: PyOD 3.6.9 with scikit-learn 1.6.1 (ROC AUC 0.754, 6 of 15 anomalies detected), contours shifted toward the minor eigenvector tip. Right: our fix (ROC AUC 0.998, 15 of 15), centered ellipses. Code: <a href="https://anonymous.4open.science/r/iclr_2027_blogpost_pca_code-5E5D/blog_post.ipynb">blog_post.ipynb, Section 1</a>.
+    Anomalies on both sides of the centroid that break the correlation. Left: PyOD 3.6.9 with scikit-learn 1.6.1 (ROC AUC 0.754, 6 of 15 anomalies detected), contours shifted toward the minor eigenvector tip. Right: our fix (ROC AUC 0.998, 15 of 15), centered ellipses. Code: <a href="https://anonymous.4open.science/r/iclr_2027_blogpost_pca_code-5E5D/blog_post.ipynb">blog_post.ipynb, Section 2</a>.
 </div>
 
 **The convention has changed**\
@@ -201,7 +201,7 @@ The following figure illustrates this ($$\rho = 0.99$$, standardized). The conto
     </div>
 </div>
 <div class="caption">
-    Anomalies near the center that break the correlation. Left: PyOD 3.6.9 with scikit-learn 1.6.1 (ROC AUC 0.478, 0 of 30 anomalies detected). Right: our fix (ROC AUC 0.992, 26 of 30). Code: <a href="https://anonymous.4open.science/r/iclr_2027_blogpost_pca_code-5E5D/blog_post.ipynb">blog_post.ipynb, Section 2</a>.
+    Anomalies near the center that break the correlation. Left: PyOD 3.6.9 with scikit-learn 1.6.1 (ROC AUC 0.478, 0 of 30 anomalies detected). Right: our fix (ROC AUC 0.992, 26 of 30). Code: <a href="https://anonymous.4open.science/r/iclr_2027_blogpost_pca_code-5E5D/blog_post.ipynb">blog_post.ipynb, Section 3</a>.
 </div>
 
 <a id="fix"></a>
