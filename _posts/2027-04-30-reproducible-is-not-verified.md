@@ -24,7 +24,7 @@ authors:
   - name: Anonymous
 
 # must be the exact same name as your blogpost
-bibliography: 2027-04-30-pca-pyod.bib
+bibliography: 2027-04-30-reproducible-is-not-verified.bib
 
 # Add a table of contents to your post.
 #   - make sure that TOC names match the actual section names
@@ -134,7 +134,7 @@ For the PCC, $$B$$ is by far the most anomalous observation, and $$A$$ is unrema
 
 <div class="row mt-3">
     <div class="col-sm-12 mx-auto">
-        {% include figure.liquid path="assets/img/2027-04-30-pca-pyod/blog_post_example_scores.png" class="img-fluid" %}
+        {% include figure.liquid path="assets/img/2027-04-30-reproducible-is-not-verified/blog_post_example_scores.png" class="img-fluid" %}
     </div>
 </div>
 <div class="caption">
@@ -178,7 +178,7 @@ The following figure illustrates this on two correlated features ($$\rho = 0.9$$
 
 <div class="row mt-3">
     <div class="col-sm-12 mx-auto">
-        {% include figure.liquid path="assets/img/2027-04-30-pca-pyod/sign_problem.png" class="img-fluid" %}
+        {% include figure.liquid path="assets/img/2027-04-30-reproducible-is-not-verified/sign_problem.png" class="img-fluid" %}
     </div>
 </div>
 <div class="caption">
@@ -197,7 +197,7 @@ The following figure illustrates this ($$\rho = 0.99$$, standardized). The conto
 
 <div class="row mt-3">
     <div class="col-sm-12 mx-auto">
-        {% include figure.liquid path="assets/img/2027-04-30-pca-pyod/projection_problem.png" class="img-fluid" %}
+        {% include figure.liquid path="assets/img/2027-04-30-reproducible-is-not-verified/projection_problem.png" class="img-fluid" %}
     </div>
 </div>
 <div class="caption">
@@ -283,7 +283,7 @@ Neither difference is significant. The higher mean ROC AUC stems from a few data
 
 <div class="row mt-3">
     <div class="col-sm-12 mx-auto">
-        {% include figure.liquid path="assets/img/2027-04-30-pca-pyod/adbench_pca_diff_landscape.png" class="img-fluid" %}
+        {% include figure.liquid path="assets/img/2027-04-30-reproducible-is-not-verified/adbench_pca_diff_landscape.png" class="img-fluid" %}
     </div>
 </div>
 <div class="caption">
