@@ -276,8 +276,8 @@ Following Demšar <d-cite key="demsar2006statistical"></d-cite>, we compare ROC 
 
 | Metric | PyOD 3.6.9 | Fix | Fix better / worse | $$p$$ |
 |---|---:|---:|---|---:|
-| ROC AUC | 0.717 | 0.746 | 28 / 29 | 0.13 |
-| AP | 0.342 | 0.316 | 27 / 30 | 0.34 |
+| ROC AUC | 0.717 | 0.745 | 28 / 29 | 0.13 |
+| AP | 0.342 | 0.314 | 28 / 29 | 0.38 |
 
 Neither difference is significant. The higher mean ROC AUC stems from a few datasets with large gains, such as Wilt (+0.45). Per dataset, however, ROC AUC and AP each change by at least 0.05 on 24 of the 57 datasets, several times the standard deviation over seeds (about 0.02).
 
@@ -291,7 +291,7 @@ Neither difference is significant. The higher mean ROC AUC stems from a few data
 </div>
 
 **Does the deviation matter?**\
-Within ADBench, it does. Among the 14 unsupervised algorithms, the fix moves PCA from fifth to first place in average ROC AUC rank (6.33 → 5.07) and to second place in AP. Replacing the published PCA values with our PyOD rerun barely changes the rank (6.40, because of amazon, imdb and yelp), so the shift comes from the score, not from our setup. Anyone choosing a baseline from ADBench would therefore judge PCA differently, although ADBench's finding that no unsupervised algorithm is statistically better than all others still holds.
+Within ADBench, it does. Among the 14 unsupervised algorithms, the fix moves PCA from fifth to first place in average ROC AUC rank (6.33 → 5.05) and to second place in AP. Replacing the published PCA values with our PyOD rerun barely changes the rank (6.40, because of amazon, imdb and yelp), so the shift comes from the score, not from our setup. Anyone choosing a baseline from ADBench would therefore judge PCA differently, although ADBench's finding that no unsupervised algorithm is statistically better than all others still holds.
 
 **Testing the theory**\
 To test whether [Problem 2](#problem-2) explains these changes, we use ADBench's synthetic variants of its classical datasets, which replace the original anomalies with generated ones of a known type <d-cite key="NEURIPS2022_cf93972b"></d-cite>. Dependency anomalies break the correlation structure without lying far from the center, so PyOD should miss them. Global anomalies lie far from the center, so PyOD should keep up. Both predictions hold. On dependency anomalies, ROC AUC rises from 0.652 to 0.893. On global anomalies, both are nearly perfect (0.993 → 0.997).
