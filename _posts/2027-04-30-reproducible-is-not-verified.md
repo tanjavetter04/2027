@@ -105,7 +105,7 @@ Instead of summing over all components, Shyu et al. evaluate the first $$q$$ (ma
 
 We analyze PyOD's PCA detector in version 3.6.9 <d-cite key="pyodPCA369"></d-cite>. It standardizes the data, fits scikit-learn's [PCA](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html) <d-cite key="scikitlearn"></d-cite>, and scores observations with the explained variance ratios as weights. This pipeline deviates from the PCC in several steps, which we list in [Appendix B](#appendix-b). Most of these deviations are simplifications. The score, however, is a different function.
 
-With the default parameters, PyOD scores a standardized observation $$\mathbf{z}$$ as follows:<d-footnote>Strictly, PyOD standardizes with the biased standard deviation (<code>ddof=0</code>, <a href="#appendix-b">Appendix B</a>), so its $\mathbf{z}$ is the PCC's $\mathbf{z}$ scaled by $\sqrt{n/(n-1)}$. The formula is exact for PyOD's $\mathbf{z}$. The explained variance ratios equal $\lambda_i / p$ exactly, because they do not depend on this scaling. In our fix, the scaling cancels between $y_i^2$ and scikit-learn's eigenvalues, so it equals the PCC score exactly.</d-footnote>
+With the default parameters, PyOD scores a standardized observation $$\mathbf{z}$$ as follows:<d-footnote>Strictly, PyOD standardizes with the biased standard deviation (<code>ddof=0</code>, <a href="#appendix-b">Appendix B</a>), so its $\mathbf{z}$ is the PCC's $\mathbf{z}$ scaled by $\sqrt{n/(n-1)}$. The formula reproduces PyOD's score exactly when $\mathbf{z}$ denotes PyOD's standardized observation. With the PCC's $\mathbf{z}$, it holds only approximately. The explained variance ratios equal $\lambda_i / p$ exactly, because they do not depend on this scaling. In our fix, the scaling cancels between $y_i^2$ and scikit-learn's eigenvalues, so it equals the PCC score exactly.</d-footnote>
 
 <p>
 $$
@@ -154,7 +154,7 @@ $$
 $$
 </p>
 
-the Euclidean distance to a single point at distance 1 from the centroid, whose side is set by a sign convention. This explains the whole table. The tip $$s_2 \mathbf{e}_2$$, a clear anomaly for the PCC (20.00), scores 1.45 for PyOD, below the training mean, while its mirror image scores 81.45 ([Problem 1](#problem-1)). And the contours are approximately circular contours around $$s_2 \mathbf{e}_2$$, so $$A$$, being farther from this point, outranks $$B$$ ([Problem 2](#problem-2)).
+the Euclidean distance to a single point at distance 1 from the centroid, whose side is set by a sign convention. This explains the whole table. The tip $$s_2 \mathbf{e}_2$$, a clear anomaly for the PCC (20.00), scores 1.45 for PyOD, below the training mean, while its mirror image scores 81.45 ([Problem 1](#problem-1)). And the contours are approximately circular around $$s_2 \mathbf{e}_2$$, so $$A$$, being farther from this point, outranks $$B$$ ([Problem 2](#problem-2)).
 
 One could argue that PyOD's score is a deliberate heuristic and that the cited references were only meant as inspiration. This problem holds regardless: a score that depends on the arbitrary sign of an eigenvector is not a well-defined function of the data.
 
@@ -174,7 +174,7 @@ $$
 
 The PCC score contains $$y_i^2$$, so the sign of $$\mathbf{e}_i$$ cancels out. In PyOD's $$s_i y_i$$ the sign matters. Flipping it changes the scores and can therefore change the ranking of observations, as in the example above and as already reported in issue #217 <d-cite key="pyodIssue217"></d-cite>. Two observations that deviate equally far along $$\mathbf{e}_i$$, but in opposite directions, are equally anomalous for Shyu et al. For PyOD, the one on the side of the tip looks less anomalous, and which side that is depends on the sign convention, not on the data.
 
-The following figure illustrates this on two correlated features ($$\rho = 0.9$$) with 15 anomalies that break the correlation. With PyOD's score (left), the contours are approximately circular contours whose center is shifted from the centroid toward the tip $$s_2\mathbf{e}_2$$ of the minor eigenvector, here to the lower right. Anomalies on this side lie close to the tip, so their scores stay below the decision threshold. Anomalies on the opposite side are farther from the tip and are more likely to be detected. Which side is favored depends only on the sign convention. With our fix (right), described [below](#fix), the contours are ellipses centered at the centroid, so anomalies on both sides are treated equally.
+The following figure illustrates this on two correlated features ($$\rho = 0.9$$) with 15 anomalies that break the correlation. With PyOD's score (left), the contours are approximately circular whose center is shifted from the centroid toward the tip $$s_2\mathbf{e}_2$$ of the minor eigenvector, here to the lower right. Anomalies on this side lie close to the tip, so their scores stay below the decision threshold. Anomalies on the opposite side are farther from the tip and are more likely to be detected. Which side is favored depends only on the sign convention. With our fix (right), described [below](#fix), the contours are ellipses centered at the centroid, so anomalies on both sides are treated equally.
 
 <div class="row mt-3">
     <div class="col-sm-12 mx-auto">
@@ -194,7 +194,7 @@ The sign is not only a theoretical concern. Since version 1.5, scikit-learn sets
 
 The PCC divides each projection $$y_i$$ by $$\sqrt{\lambda_i}$$ *before* measuring the distance, so a small step along a minor component counts as much as a large step along a major one. PyOD first measures a Euclidean distance, in which all directions count equally, and divides by $$\lambda_i$$ only afterwards, which scales the whole distance regardless of direction. The information about which directions are normal is thus lost before the eigenvalue is applied, although this correlation structure is exactly what PCA is meant to capture. Correlation-breaking anomalies that are not unusually far from the center are therefore hard to detect.
 
-The following figure illustrates this ($$\rho = 0.99$$, standardized). The contours of equal PCC score are ellipses, stretched along the major and squeezed along the minor components. PyOD's terms have circular contours around the eigenvector tips, and away from the center their sum looks like approximately circular contours around the center. The anomalies in the figure break the correlation but lie close to the center. Their norm is at most 1.6, while 10% of the inliers lie farther out along the major axis. PyOD's threshold is therefore set by these inliers, so all anomalies fall inside it and none is detected. Our fix uses the squared Mahalanobis distance. It normalizes each direction by its eigenvalue before measuring the distance, which yields ellipses along the data and detects 26 of 30 anomalies.
+The following figure illustrates this ($$\rho = 0.99$$, standardized). The contours of equal PCC score are ellipses, stretched along the major and squeezed along the minor components. PyOD's terms have approximately circular contours around the eigenvector tips, and away from the center their sum looks like approximately circular contours around the center. The anomalies in the figure break the correlation but lie close to the center. Their norm is at most 1.6, while 10% of the inliers lie farther out along the major axis. PyOD's threshold is therefore set by these inliers, so all anomalies fall inside it and none is detected. Our fix uses the squared Mahalanobis distance. It normalizes each direction by its eigenvalue before measuring the distance, which yields ellipses along the data and detects 26 of 30 anomalies.
 
 <div class="row mt-3">
     <div class="col-sm-12 mx-auto">
@@ -323,7 +323,7 @@ In 2019, a user observed on their data that the PCA scores correlate with the Eu
 
 **Adoption continued.**\
 Although the deviation had been public since 2019, ADBench adopted the detector as a baseline in 
-2022 (altough describing it , along with other unsupervised detectors from PyOD <d-cite 
+2022, along with other unsupervised detectors from PyOD <d-cite 
 key="adbenchPyODWrapper"></d-cite>. Yue Zhao, the first author and maintainer of PyOD <d-cite key="zhao2019pyod"></d-cite>, is also a co-author of ADBench <d-cite key="NEURIPS2022_cf93972b"></d-cite>. Building a benchmark on a library one knows well is a natural choice and keeps the baselines consistent. From there, its results spread into papers that copy benchmark numbers without ever importing PyOD.
 
 Reporting a problem is therefore not enough. The report lives in an issue tracker, while the affected results live in papers, and nothing connects the two.
