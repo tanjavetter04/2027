@@ -245,7 +245,7 @@ The following video shows that both problems persist in three dimensions. It com
     Observations added over time on three correlated features. Left: PyOD 3.6.9 with scikit-learn 1.6.1. Right: our fix. Code: <a href="https://anonymous.4open.science/r/iclr_2027_blogpost_pca_code-5E5D/blog_post.ipynb">blog_post.ipynb, Section 4</a>.
 </div>
 
-The fixed detector is available as a drop-in replacement for PyOD's PCA in [pca_new.py](https://anonymous.4open.science/r/iclr_2027_blogpost_pca_code-5E5D/pca_new.py). TODO add pull request when ready. We also corrected the misleading comments and added unit tests verifying sign invariance and exact equivalence to the Mahalanobis distance. We will open a pull request against PyOD once the corresponding issue TODO has been assigned, following the project's contribution guidelines.
+The fixed detector is available as a replacement for PyOD's PCA in [pca_new.py](https://anonymous.4open.science/r/iclr_2027_blogpost_pca_code-5E5D/pca_new.py). TODO add pull request when ready. We also corrected the misleading comments and added unit tests verifying sign invariance and exact equivalence to the Mahalanobis distance. We will open a pull request against PyOD once the corresponding issue TODO has been assigned, following the project's contribution guidelines.
 
 <a id="impact"></a>
 ## How far it spread
