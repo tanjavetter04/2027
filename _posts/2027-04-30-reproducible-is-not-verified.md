@@ -154,7 +154,7 @@ $$
 $$
 </p>
 
-the Euclidean distance to a single point at distance 1 from the centroid, whose side is set by a sign convention. This explains the whole table. The tip $$s_2 \mathbf{e}_2$$, a clear anomaly for the PCC (20.00), scores 1.45 for PyOD, below the training mean, while its mirror image scores 81.45 ([Problem 1](#problem-1)). And the contours are circles around $$s_2 \mathbf{e}_2$$, so $$A$$, being farther from this point, outranks $$B$$ ([Problem 2](#problem-2)).
+the Euclidean distance to a single point at distance 1 from the centroid, whose side is set by a sign convention. This explains the whole table. The tip $$s_2 \mathbf{e}_2$$, a clear anomaly for the PCC (20.00), scores 1.45 for PyOD, below the training mean, while its mirror image scores 81.45 ([Problem 1](#problem-1)). And the contours are approximated circles around $$s_2 \mathbf{e}_2$$, so $$A$$, being farther from this point, outranks $$B$$ ([Problem 2](#problem-2)).
 
 One could argue that PyOD's score is a deliberate heuristic and that the cited references were only meant as inspiration. This problem holds regardless: a score that depends on the arbitrary sign of an eigenvector is not a well-defined function of the data.
 
@@ -174,7 +174,7 @@ $$
 
 The PCC score contains $$y_i^2$$, so the sign of $$\mathbf{e}_i$$ cancels out. In PyOD's $$s_i y_i$$ the sign matters. Flipping it changes the scores and can therefore change the ranking of observations, as in the example above and as already reported in issue #217 <d-cite key="pyodIssue217"></d-cite>. Two observations that deviate equally far along $$\mathbf{e}_i$$, but in opposite directions, are equally anomalous for Shyu et al. For PyOD, the one on the side of the tip looks less anomalous, and which side that is depends on the sign convention, not on the data.
 
-The following figure illustrates this on two correlated features ($$\rho = 0.9$$) with 15 anomalies that break the correlation. With PyOD's score (left), the contours are circles whose center is shifted from the centroid toward the tip $$s_2\mathbf{e}_2$$ of the minor eigenvector, here to the lower right. Anomalies on this side lie close to the tip, so their scores stay below the decision threshold. Anomalies on the opposite side are farther from the tip and are more likely to be detected. Which side is favored depends only on the sign convention. With our fix (right), described [below](#fix), the contours are ellipses centered at the centroid, so anomalies on both sides are treated equally.
+The following figure illustrates this on two correlated features ($$\rho = 0.9$$) with 15 anomalies that break the correlation. With PyOD's score (left), the contours are approximated circles whose center is shifted from the centroid toward the tip $$s_2\mathbf{e}_2$$ of the minor eigenvector, here to the lower right. Anomalies on this side lie close to the tip, so their scores stay below the decision threshold. Anomalies on the opposite side are farther from the tip and are more likely to be detected. Which side is favored depends only on the sign convention. With our fix (right), described [below](#fix), the contours are ellipses centered at the centroid, so anomalies on both sides are treated equally.
 
 <div class="row mt-3">
     <div class="col-sm-12 mx-auto">
@@ -193,7 +193,7 @@ The sign is not only a theoretical concern. Since version 1.5, scikit-learn sets
 
 The PCC divides each projection $$y_i$$ by $$\sqrt{\lambda_i}$$ *before* measuring the distance, so a small step along a minor component counts as much as a large step along a major one. PyOD first measures a Euclidean distance, in which all directions count equally, and divides by $$\lambda_i$$ only afterwards, which scales the whole distance regardless of direction. The information about which directions are normal is thus lost before the eigenvalue is applied, although this correlation structure is exactly what PCA is meant to capture. Correlation-breaking anomalies that are not unusually far from the center are therefore hard to detect.
 
-The following figure illustrates this ($$\rho = 0.99$$, standardized). The contours of equal PCC score are ellipses, stretched along the major and squeezed along the minor components. PyOD's terms have circular contours around the eigenvector tips, and away from the center their sum looks like circles around the center. The anomalies in the figure break the correlation but lie close to the center. Their norm is at most 1.6, while 10% of the inliers lie farther out along the major axis. PyOD's threshold is therefore set by these inliers, so all anomalies fall inside it and none is detected. Our fix uses the squared Mahalanobis distance. It normalizes each direction by its eigenvalue before measuring the distance, which yields ellipses along the data and detects 26 of 30 anomalies.
+The following figure illustrates this ($$\rho = 0.99$$, standardized). The contours of equal PCC score are ellipses, stretched along the major and squeezed along the minor components. PyOD's terms have circular contours around the eigenvector tips, and away from the center their sum looks like approximated circles around the center. The anomalies in the figure break the correlation but lie close to the center. Their norm is at most 1.6, while 10% of the inliers lie farther out along the major axis. PyOD's threshold is therefore set by these inliers, so all anomalies fall inside it and none is detected. Our fix uses the squared Mahalanobis distance. It normalizes each direction by its eigenvalue before measuring the distance, which yields ellipses along the data and detects 26 of 30 anomalies.
 
 <div class="row mt-3">
     <div class="col-sm-12 mx-auto">
@@ -215,7 +215,7 @@ $$
 $$
 </p>
 
-This resolves both problems. Because $$y_i$$ enters the statistic squared, the anomaly score is invariant to the sign $$s_i$$ of the eigenvectors ([Problem 1](#problem-1)). Normalizing each principal direction by its eigenvalue $$\lambda_i$$ ensures that the correlation structure is preserved ([Problem 2](#problem-2)). With the default parameters, the score equals the squared Mahalanobis distance, i.e., Aggarwal's soft PCA. If `n_components` $$= p$$ and `n_selected_components` $$= r$$, the sum runs over the $$r$$ components with the smallest eigenvalues, and the score corresponds to the minor statistic $$T_{\text{minor}}$$ of Shyu et al.
+This resolves both problems. Because $$y_i$$ enters the statistic squared, the anomaly score is invariant to the sign $$s_i$$ of the eigenvectors ([Problem 1](#problem-1)). Normalizing each principal direction by its eigenvalue $$\lambda_i$$ ensures that the correlation structure is preserved ([Problem 2](#problem-2)). With the default parameters and a full-rank correlation matrix (all $\lambda_i > 0$), the score equals the squared Mahalanobis distance, i.e., Aggarwal's soft PCA. If `n_components` $$= p$$ and `n_selected_components` $$= r$$, the sum runs over the $$r$$ components with the smallest eigenvalues, and the score corresponds to the minor statistic $$T_{\text{minor}}$$ of Shyu et al.
 
 <details markdown="1">
 <summary>Code change relative to PyOD 3.6.9</summary>
