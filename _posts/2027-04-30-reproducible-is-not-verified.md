@@ -247,7 +247,7 @@ The following video shows that both problems persist in three dimensions. It com
     Observations added over time on three correlated features. Left: PyOD 3.6.9 with scikit-learn 1.6.1. Right: our fix. Code: <a href="https://anonymous.4open.science/r/iclr_2027_blogpost_pca_code-5E5D/blog_post.ipynb">blog_post.ipynb, Section 4</a>.
 </div>
 
-The fixed detector is available as a drop-in replacement for PyOD's PCA in [pca_new.py](https://anonymous.4open.science/r/iclr_2027_blogpost_pca_code-5E5D/pca_new.py). TODO add pull request when ready. We also corrected the misleading comments and added unit tests verifying sign invariance and exact equivalence to the Mahalanobis distance. We will open a pull request against PyOD once the corresponding issue TODO has been assigned, following the project's contribution guidelines.
+The fixed detector is available in [pca_new.py](https://anonymous.4open.science/r/iclr_2027_blogpost_pca_code-5E5D/pca_new.py). We also corrected the misleading comments and added unit tests verifying sign invariance and exact equivalence to the Mahalanobis distance. We will open a pull request against PyOD once the corresponding issue #XXX (issue anonymized for double-blind review) has been accepted, following the project's contribution guidelines.
 
 <a id="impact"></a>
 ## How far it spread
@@ -278,8 +278,8 @@ Following Demšar <d-cite key="demsar2006statistical"></d-cite>, we compare ROC 
 
 | Metric | PyOD 3.6.9 | Fix | Fix better / worse | $$p$$ |
 |---|---:|---:|---|---:|
-| ROC AUC | 0.717 | 0.746 | 28 / 29 | 0.13 |
-| AP | 0.342 | 0.316 | 27 / 30 | 0.34 |
+| ROC AUC | 0.717 | 0.745 | 28 / 29 | 0.13 |
+| AP | 0.342 | 0.314 | 28 / 29 | 0.38 |
 
 Neither difference is significant. The higher mean ROC AUC stems from a few datasets with large gains, such as Wilt (+0.45). Per dataset, however, ROC AUC and AP each change by at least 0.05 on 24 of the 57 datasets, several times the standard deviation over seeds (about 0.02).
 
@@ -293,12 +293,12 @@ Neither difference is significant. The higher mean ROC AUC stems from a few data
 </div>
 
 **Does the deviation matter?**\
-Within ADBench, it does. Among the 14 unsupervised algorithms, the fix moves PCA from fifth to first place in average ROC AUC rank (6.33 → 5.07) and to second place in AP. Replacing the published PCA values with our PyOD rerun barely changes the rank (6.40, because of amazon, imdb and yelp), so the shift comes from the score, not from our setup. Anyone choosing a baseline from ADBench would therefore judge PCA differently, although ADBench's finding that no unsupervised algorithm is statistically better than all others still holds.
+Within ADBench, it does. Among the 14 unsupervised algorithms, the fix moves PCA from fifth to first place in average ROC AUC rank (6.33 → 5.05) and to second place in AP. Replacing the published PCA values with our PyOD rerun barely changes the rank (6.40, because of amazon, imdb and yelp), so the shift comes from the score, not from our setup. Anyone choosing a baseline from ADBench would therefore judge PCA differently, although ADBench's finding that no unsupervised algorithm is statistically better than all others still holds.
 
 **Testing the theory**\
 To test whether [Problem 2](#problem-2) explains these changes, we use ADBench's synthetic variants of its classical datasets, which replace the original anomalies with generated ones of a known type <d-cite key="NEURIPS2022_cf93972b"></d-cite>. Dependency anomalies break the correlation structure without lying far from the center, so PyOD should miss them. Global anomalies lie far from the center, so PyOD should keep up. Both predictions hold. On dependency anomalies, ROC AUC rises from 0.652 to 0.893. On global anomalies, both are nearly perfect (0.993 → 0.997).
 
-On clustered anomalies, which form a dense group, the fix is worse (0.979 → 0.893). Because ADBench trains on contaminated data, the cluster inflates the covariance in its own direction, and the Mahalanobis distance treats this direction as normal. Trained on normal data only, the fix recovers (fault: 0.743 → 0.984). The fix, like the PCC, assumes largely clean training data. Shyu et al. only trim a small fraction of extreme observations, which removes scattered outliers but is unlikely to remove a dense cluster that masks itself.
+On clustered anomalies, which form a dense group, the fix is worse (0.979 → 0.893). Because ADBench trains on contaminated data, the cluster inflates the covariance in its own direction, and the Mahalanobis distance treats this direction as normal. Trained on normal data only, the fix recovers (dataset `fault`: 0.743 → 0.984). The fix, like the PCC, assumes largely clean training data. Shyu et al. only trim a small fraction of extreme observations, which removes scattered outliers but is unlikely to remove a dense cluster that masks itself.
 
 In short, ADBench's PCA results are a correct measurement of PyOD's implementation, reported under a reference whose score they do not compute.
 
