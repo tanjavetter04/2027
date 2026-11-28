@@ -82,7 +82,7 @@ First, we take the case apart: we recap what the cited method computes, show whe
 
 ### What the cited method computes
 
-PCA is a classical method for dimensionality reduction <d-cite key="Jolliffe2002Principal"></d-cite>. It finds orthogonal directions, the principal components, ordered by how much of the data's variance they explain. In dimensionality reduction, one usually keeps only the major principal components, since they capture most of the variance. PCA-based anomaly detection builds on the same idea: observations that lie far from the subspace spanned by the major principal components are flagged as anomalies. In addition, it can make use of the minor components <d-cite key="shyu2003"></d-cite>. While the major components describe the dominant variation of normal data, the minor components have very little variance and therefore encode near-linear dependencies among the features. As a result, they react strongly to observations that violate the correlation structure of the normal data.
+PCA is a classical method for dimensionality reduction <d-cite key="Jolliffe2002Principal"></d-cite>. It finds orthogonal directions, the principal components, ordered by how much of the data's variance they explain. In dimensionality reduction, one usually keeps only the major principal components, since they capture most of the variance. PCA-based anomaly detection builds on the same idea: observations that lie far from the subspace spanned by the major principal components are flagged as anomalies. In addition, it can make use of the minor components <d-cite key="shyu2003"></d-cite>. While the major components describe the dominant variation of normal data, the minor components have very little variance and therefore encode near-linear dependencies among the features. This holds, as described by Shyu et. al, if the features are standardized. As a result, they react strongly to observations that violate the correlation structure of the normal data.
 
 Shyu et al. <d-cite key="shyu2003"></d-cite> build the PCC on this idea. In the following we 
 summarize the parts needed for the anomaly score. The full classifier is described in [Appendix A](#appendix-a). Each feature is first standardized with its sample mean and standard deviation, which moves the centroid of the data to the origin and gives every feature unit variance. We denote a standardized observation by $$\mathbf{z} = (z_1, \dots, z_p)^\top$$.
@@ -90,16 +90,16 @@ summarize the parts needed for the anomaly score. The full classifier is describ
 **Principal components**\
 The eigenvalues and eigenvectors are obtained from an eigendecomposition of the $$p \times p$$ sample correlation matrix $$\mathbf{R}$$, i.e., the covariance matrix of the standardized observations $$\mathbf{z}$$. This yields $$p$$ pairs $$(\lambda_i, \mathbf{e}_i)$$ of eigenvalues and unit eigenvectors, ordered such that $$\lambda_1 \geq \lambda_2 \geq \dots \geq \lambda_p$$.
 
-The key quantity is the $$i$$-th principal component $$y_i$$. It is calculated by projecting each standardized observation $$\mathbf{z}$$ onto the $$i$$-th eigenvector $$\mathbf{e}_i$$:
+The key quantity is the $$i$$-th principal component $$y_i$$. It is calculated by projecting a standardized observation $$\mathbf{z}$$ onto the $$i$$-th eigenvector $$\mathbf{e}_i$$:
 
 <p>
 $$y_i = \mathbf{e}_i^\top \mathbf{z} = e_{i1} z_1 + e_{i2} z_2 + \dots + e_{ip} z_p $$
 </p>
 
-The principal component $$y_i$$ has variance $$\lambda_i$$ on the training data, so $$y_i^2 / \lambda_i$$ represents the squared, variance-normalized distance from the origin along the $$i$$-th principal axis. The sum of $$y_i^2/\lambda_i$$ over all $$p$$ components yields the squared Mahalanobis distance <d-cite key="shyu2003,mahalanobis1936generalized"></d-cite>, which is referred by Aggarwal <d-cite key="aggarwal2017"></d-cite> as *soft PCA*.
+The principal component $$y_i$$ has variance $$\lambda_i$$ on the training data, so $$y_i^2 / \lambda_i$$ represents the squared, variance-normalized distance from the origin along the $$i$$-th principal axis. The sum of $$y_i^2/\lambda_i$$ over all $$p$$ components is the squared Mahalanobis distance <d-cite key="shyu2003,mahalanobis1936generalized"></d-cite>, which is referred by Aggarwal <d-cite key="aggarwal2017"></d-cite> as *soft PCA*.
 
 **Major and minor components**\
-Instead of summing over all components, Shyu et al. evaluate the first $$q$$ (major) and the last $$r$$ (minor) components with two separate statistics, $$T_{\text{major}}$$ and $$T_{\text{minor}}$$, each a sum of $$y_i^2/\lambda_i$$ over its components ([Appendix A](#appendix-a)). In the minor statistic, the weight $$1/\lambda_i$$ amplifies small deviations that violate the normal correlation structure. An observation is flagged as anomalous if either statistic exceeds its threshold.
+Instead of summing over all components, Shyu et al. evaluate the first $$q$$ (major) and the last $$r$$ (minor) components with two separate statistics, $$T_{\text{major}}$$ and $$T_{\text{minor}}$$, each a sum of $$y_i^2/\lambda_i$$ over a respective subset of components ([Appendix A](#appendix-a)). In the minor statistic, the weight $$1/\lambda_i$$ amplifies small deviations that violate the normal correlation structure. An observation is flagged as anomalous if either statistic exceeds a given threshold.
 
 ### What PyOD computes
 
@@ -118,9 +118,10 @@ Here $$s_i\mathbf{e}_i$$ are the unit eigenvectors learned from the standardized
 
 To see what this score does in practice, we first apply it to a small example.
 
+<a id="example"></a>
 ### A short example
 
-Consider $$p = 2$$ standardized features with correlation $$\rho = 0.95$$, so that $$\lambda_1 = 1.95$$, $$\mathbf{e}_1 = \tfrac{1}{\sqrt 2}(1, 1)$$ and $$\lambda_2 = 0.05$$, $$\mathbf{e}_2 = \tfrac{1}{\sqrt 2}(1, -1)$$. In the PCC, $$q = r = 1$$. We score a few observations with PyOD 3.6.9 under both signs of $$\mathbf{e}_2$$ and with our fix:
+Consider $$p = 2$$ standardized features with correlation $$\rho = 0.95$$, $$\lambda_1 = 1.95$$, $$\mathbf{e}_1 = \tfrac{1}{\sqrt 2}(1, 1)$$ and $$\lambda_2 = 0.05$$, $$\mathbf{e}_2 = \tfrac{1}{\sqrt 2}(1, -1)$$. In the PCC, $$q = r = 1$$. We score a few observations with PyOD 3.6.9 under both signs of $$\mathbf{e}_2$$ and compare it to the results obtained with our fix:
 
 | Observation | Description | PyOD, $$s_2 = +1$$ | PyOD, $$s_2 = -1$$ | Our fix |
 |---|---|---|---|---|
@@ -154,9 +155,9 @@ $$
 $$
 </p>
 
-the Euclidean distance to a single point at distance 1 from the centroid, whose side is set by a sign convention. This explains the whole table. The tip $$s_2 \mathbf{e}_2$$, a clear anomaly for the PCC (20.00), scores 1.45 for PyOD, below the training mean, while its mirror image scores 81.45 ([Problem 1](#problem-1)). And the contours are approximately circular around $$s_2 \mathbf{e}_2$$, so $$A$$, being farther from this point, outranks $$B$$ ([Problem 2](#problem-2)).
+the Euclidean distance to a single point at distance 1 from the centroid, whose side is set by a sign convention. This clarifies the results and observations of the [example](#example). The tip $$s_2 \mathbf{e}_2$$, a clear anomaly for the PCC (20.00), scores 1.45 for PyOD, below the training mean, while its mirror image scores 81.45 ([Problem 1](#problem-1)). And the contours are approximately circular around $$s_2 \mathbf{e}_2$$, so $$A$$, being farther from this point, outranks $$B$$ ([Problem 2](#problem-2)).
 
-One could argue that PyOD's score is a deliberate heuristic and that the cited references were only meant as inspiration. This problem holds regardless: a score that depends on the arbitrary sign of an eigenvector is not a well-defined function of the data.
+One could argue that PyOD's score is a deliberate heuristic and that the cited references were only meant as inspiration. TNevertheless, a score that depends on the arbitrary sign of an eigenvector is not a well-defined function of the data.
 
 **In higher dimensions**\
 By the triangle inequality, $$W(\lVert \mathbf{z}\rVert - 1) \le \text{score}_{\text{PyOD}}(\mathbf{z}) \le W(\lVert \mathbf{z}\rVert + 1)$$, so the direction of a deviation, including the side set by the sign, shifts the score by at most $$\pm W$$. Since $$\mathbb{E}\lVert \mathbf{z}\rVert^2 = \operatorname{tr}(\mathbf{R}) = p$$ for standardized data, typical observations have $$\lVert \mathbf{z}\rVert \approx \sqrt{p}$$, so the influence of the direction shrinks like $$1/\sqrt{p}$$ and the score approaches a scaled Euclidean norm. In the two-dimensional example, $$\lVert \mathbf{z}\rVert$$ is of order 1, which is why the single dominant tip decides there.
@@ -176,7 +177,7 @@ The PCC score contains $$y_i^2$$, so the sign of $$\mathbf{e}_i$$ cancels out. I
 
 The following figure illustrates this on two correlated features ($$\rho = 0.9$$) with 15 anomalies that break the correlation. With PyOD's score (left), the contours are approximately circular whose center is shifted from the centroid toward the tip $$s_2\mathbf{e}_2$$ of the minor eigenvector, here to the lower right. Anomalies on this side lie close to the tip, so their scores stay below the decision threshold. Anomalies on the opposite side are farther from the tip and are more likely to be detected. Which side is favored depends only on the sign convention. With our fix (right), described [below](#fix), the contours are ellipses centered at the centroid, so anomalies on both sides are treated equally.
 
-<div class="row mt-3">
+<div class="row mt-3" id="fig_problem1">
     <div class="col-sm-12 mx-auto">
         {% include figure.liquid path="assets/img/2027-04-30-reproducible-is-not-verified/sign_problem.png" class="img-fluid" %}
     </div>
@@ -187,7 +188,7 @@ The following figure illustrates this on two correlated features ($$\rho = 0.9$$
 
 <a id="convention"></a>
 **The convention has changed**\
-The sign is not only a theoretical concern. Since version 1.5, scikit-learn sets the sign of `components_` based on the component values instead of the transformed data <d-cite key="sklearn15changelog"></d-cite>. On the data of the figure above and with the same PyOD version, the convention before 1.5 flips $$\mathbf{e}_2$$, which shifts the contours to the upper left and lowers ROC AUC from 0.754 to 0.680. On the Wilt dataset of ADBench, ROC AUC is 0.204 with scikit-learn 1.4.2 and 0.402 with scikit-learn 1.6.1. Both values are below 0.5, the value of a random ranking. With scikit-learn 1.4.2, a randomly drawn anomaly scores lower than a randomly drawn inlier in about 80% of all pairs, so inverting the scores would work better than using them. Our fix, which does not depend on the sign, raises ROC AUC on Wilt by 0.45 ([How far it spread](#impact)). PyOD's scores therefore depend not only on the PyOD version, but also on the scikit-learn version. The PCC score and our fix are unaffected.
+The sign is not only a theoretical concern. Since version 1.5, scikit-learn sets the sign of `components_` based on the component values instead of the transformed data <d-cite key="sklearn15changelog"></d-cite>. On the data of the [figure](#fig_problem1) above, with the same PyOD version but scikit-learns version before 1.5, $$\mathbf{e}_2$$ flips, which shifts the contours to the upper left and lowers ROC AUC from 0.754 to 0.680. On the Wilt dataset of ADBench, ROC AUC is 0.204 with scikit-learn 1.4.2 and 0.402 with scikit-learn 1.6.1. Both values are below 0.5, the value of a random ranking. With scikit-learn 1.4.2, a randomly drawn anomaly scores lower than a randomly drawn inlier in about 80% of all pairs, so inverting the scores would work better than using them. Our fix, which does not depend on the sign, raises ROC AUC on Wilt by 0.45 ([How far it spread](#impact)). PyOD's scores therefore depend not only on the PyOD version, but also on the scikit-learn version. The PCC score and our fix are unaffected.
 
 <a id="problem-2"></a>
 ### Problem 2: The correlation structure is lost
@@ -216,7 +217,7 @@ $$
 $$
 </p>
 
-This resolves both problems. Because $$y_i$$ enters the statistic squared, the anomaly score is 
+Contrary to #211 <d-cite key="pyodPR211"></d-cite>, this resolves both problems. Because $$y_i$$ enters the statistic squared, the anomaly score is 
 invariant to the sign $$s_i$$ of the eigenvectors ([Problem 1](#problem-1)). Normalizing each 
 principal direction by its eigenvalue $$\lambda_i$$ ensures that the correlation structure is preserved ([Problem 2](#problem-2)). With the default parameters and a full-rank correlation matrix (all $$\lambda_i > 0$$), the score equals the squared Mahalanobis distance, i.e., Aggarwal's soft PCA. If `n_components` $$= p$$ and `n_selected_components` $$= r$$, the sum runs over the $$r$$ components with the smallest eigenvalues, and the score corresponds to the minor statistic $$T_{\text{minor}}$$ of Shyu et al.
 
