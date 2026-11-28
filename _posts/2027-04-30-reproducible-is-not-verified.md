@@ -124,7 +124,7 @@ To see what this score does in practice, we first apply it to a small example.
 <a id="example"></a>
 ### A short example
 
-Consider $$p = 2$$ standardized features with correlation $$\rho = 0.95$$, $$\lambda_1 = 1.95$$, $$\mathbf{e}_1 = \tfrac{1}{\sqrt 2}(1, 1)$$ and $$\lambda_2 = 0.05$$, $$\mathbf{e}_2 = \tfrac{1}{\sqrt 2}(1, -1)$$. In the PCC, $$q = r = 1$$. We score a few observations with PyOD 3.6.9 under both signs of $$\mathbf{e}_2$$ and compare it to the results obtained with our fix:
+Consider $$p = 2$$ standardized features with correlation $$\rho = 0.95$$, $$\lambda_1 = 1.95$$, $$\mathbf{e}_1 = \tfrac{1}{\sqrt 2}(1, 1)$$ and $$\lambda_2 = 0.05$$, $$\mathbf{e}_2 = \tfrac{1}{\sqrt 2}(1, -1)$$. In the PCC, $$q = r = 1$$. We score a few observations with PyOD 3.6.9 under both signs of $$\mathbf{e}_2$$ and compare it to the results obtained with our [fix](#fix):
 
 | Observation | Description | PyOD, $$s_2 = +1$$ | PyOD, $$s_2 = -1$$ | Our fix |
 |---|---|---|---|---|
@@ -134,7 +134,7 @@ Consider $$p = 2$$ standardized features with correlation $$\rho = 0.95$$, $$\la
 | $$\mathbf{e}_2$$ | tip of the minor eigenvector | 1.45 | 81.45 | 20.00 |
 | $$-\mathbf{e}_2$$ | its mirror image | 81.45 | 1.45 | 20.00 |
 
-For the PCC, $$B$$ is by far the most anomalous observation, and $$A$$ is unremarkable. PyOD with $$s_2 = +1$$ ranks $$A$$ well above $$B$$. Flipping the sign of $$\mathbf{e}_2$$ reverses the order of $$A$$ and $$B$$ and swaps the scores of the two tips. Whichever tip coincides with $$s_2 \mathbf{e}_2$$ even scores lower than the training mean itself.
+For our proposed fix, $$B$$ is by far the most anomalous observation, and $$A$$ is unremarkable. PyOD with $$s_2 = +1$$ ranks $$A$$ well above $$B$$. Flipping the sign of $$\mathbf{e}_2$$ reverses the order of $$A$$ and $$B$$ and swaps the scores of the two tips. Whichever tip coincides with $$s_2 \mathbf{e}_2$$ even scores lower than the training mean itself.
 
 <div class="row mt-3">
     <div class="col-sm-12 mx-auto">
@@ -158,9 +158,9 @@ $$
 $$
 </p>
 
-the Euclidean distance to a single point at distance 1 from the centroid, whose side is set by a sign convention. This clarifies the results and observations of the [example](#example). The tip $$s_2 \mathbf{e}_2$$, a clear anomaly for the PCC (20.00), scores 1.45 for PyOD, below the training mean, while its mirror image scores 81.45 ([Problem 1](#problem-1)). And the contours are approximately circular around $$s_2 \mathbf{e}_2$$, so $$A$$, being farther from this point, outranks $$B$$ ([Problem 2](#problem-2)).
+the Euclidean distance to a single point at distance 1 from the centroid, whose side is set by a sign convention. This clarifies the results and observations of the [example](#example). The tip $$s_2 \mathbf{e}_2$$, a clear anomaly for our fix (20.00), scores 1.45 for PyOD, below the training mean, while its mirror image scores 81.45 ([Problem 1](#problem-1)). And the contours are approximately circular around $$s_2 \mathbf{e}_2$$, so $$A$$, being farther from this point, outranks $$B$$ ([Problem 2](#problem-2)).
 
-One could argue that PyOD's score is a deliberate heuristic and that the cited references were only meant as inspiration. TNevertheless, a score that depends on the arbitrary sign of an eigenvector is not a well-defined function of the data.
+One could argue that PyOD's score is a deliberate heuristic and that the cited references were only meant as inspiration. Nevertheless, a score that depends on the arbitrary sign of an eigenvector is not a well-defined function of the data.
 
 **In higher dimensions**\
 By the triangle inequality, $$W(\lVert \mathbf{z}\rVert - 1) \le \text{score}_{\text{PyOD}}(\mathbf{z}) \le W(\lVert \mathbf{z}\rVert + 1)$$, so the direction of a deviation, including the side set by the sign, shifts the score by at most $$\pm W$$. Since $$\mathbb{E}\lVert \mathbf{z}\rVert^2 = \operatorname{tr}(\mathbf{R}) = p$$ for standardized data, typical observations have $$\lVert \mathbf{z}\rVert \approx \sqrt{p}$$, so the influence of the direction shrinks like $$1/\sqrt{p}$$ and the score approaches a scaled Euclidean norm. In the two-dimensional example, $$\lVert \mathbf{z}\rVert$$ is of order 1, which is why the single dominant tip decides there.
@@ -191,7 +191,7 @@ The following figure illustrates this on two correlated features ($$\rho = 0.9$$
 
 <a id="convention"></a>
 **The convention has changed**\
-The sign is not only a theoretical concern. Since version 1.5, scikit-learn sets the sign of `components_` based on the component values instead of the transformed data <d-cite key="sklearn15changelog"></d-cite>. On the data of the [figure](#fig_problem1) above, with the same PyOD version but scikit-learns version before 1.5, $$\mathbf{e}_2$$ flips, which shifts the contours to the upper left and lowers ROC AUC from 0.754 to 0.680. On the Wilt dataset of ADBench, ROC AUC is 0.204 with scikit-learn 1.4.2 and 0.402 with scikit-learn 1.6.1. Both values are below 0.5, the value of a random ranking. With scikit-learn 1.4.2, a randomly drawn anomaly scores lower than a randomly drawn inlier in about 80% of all pairs, so inverting the scores would work better than using them. Our fix, which does not depend on the sign, raises ROC AUC on Wilt by 0.45 ([How far it spread](#impact)). PyOD's scores therefore depend not only on the PyOD version, but also on the scikit-learn version. The PCC score and our fix are unaffected.
+The sign is not only a theoretical concern. Since version 1.5, scikit-learn sets the sign of `components_` based on the component values instead of the transformed data <d-cite key="sklearn15changelog"></d-cite>. On the data of the [figure](#fig_problem1) above, with the same PyOD version but the scikit-learn's sign convention before 1.5, $$\mathbf{e}_2$$ flips, which shifts the contours to the upper left and lowers ROC AUC from 0.754 to 0.680. On the Wilt dataset of ADBench, ROC AUC is 0.204 with scikit-learn 1.4.2 and 0.402 with scikit-learn 1.6.1. Our fix, which does not depend on the sign, reaches 0.656 under both versions ([How far it spread](#impact)). PyOD's scores therefore depend not only on the PyOD version, but also on the scikit-learn version. The PCC score and our fix are unaffected.
 
 <a id="problem-2"></a>
 ### Problem 2: The correlation structure is lost
@@ -338,7 +338,7 @@ In machine learning, Kriegel et al. <d-cite key="kriegel2017black"></d-cite> sho
 
 A fix in the library does not reach published results, but their pinned versions make it possible to determine whether they are affected. This requires a record of which code and versions are affected, a record of which code and versions a result depends on, and a way to link the two. Existing practices provide only parts of this. Pinned versions record the dependencies, but there is nothing to match them against. Changelogs cover only problems that have been fixed, and they do not link them to specific functions and versions in a machine-readable form. Issue trackers describe open problems, but they are scattered across repositories and not linked to affected versions. Rerunning every result would make matching unnecessary, but it would shift the cost to every reader of every paper.
 
-Mechanisms for correcting the record after publication exist, but they attach to papers, not to code. Crossmark shows readers whether a paper has been corrected or retracted <d-cite key="crossmark"></d-cite>, and standards for retraction notices exist <d-cite key="niso2024crec"></d-cite>. PubPeer hosts comments on individual articles <d-cite key="pubpeer"></d-cite>. All of them require a note on each affected paper, which presupposes that the affected papers are known. The closest counterpart to a correctness advisory is a software registry entry: the Research Resource Identifier (RRID) record of the Willoughby–Hoye scripts now carries a warning that points to the paper describing the bug <d-cite key="rridWilloughbyHoye"></d-cite>. It reaches those who look up the tool, but not the readers of papers that used it. Even data are hard to correct: withdrawn datasets keep circulating through derivatives <d-cite key="peng2021mitigating"></d-cite>.
+Mechanisms for correcting the record after publication exist, but they attach to papers, not to code. Crossmark shows readers whether a paper has been corrected or retracted <d-cite key="crossmark"></d-cite>, and standards for retraction notices exist <d-cite key="niso2024crec"></d-cite>. PubPeer hosts comments on individual articles <d-cite key="pubpeer"></d-cite>. All of them require a note on each affected paper, which only works if the affected papers are known. The closest counterpart to a correctness advisory is a software registry entry. The Research Resource Identifier (RRID) record of the Willoughby–Hoye scripts now carries a warning that points to the paper describing the bug <d-cite key="rridWilloughbyHoye"></d-cite>. It reaches those who look up the tool, but not the readers of papers that used it. Even data are hard to correct, as withdrawn datasets keep circulating through derivatives <d-cite key="peng2021mitigating"></d-cite>.
 
 For security vulnerabilities, this infrastructure exists. CVE started because every tool kept its own, incompatible list of vulnerabilities <d-cite key="mann1999cve"></d-cite>. Today, the OSV schema records affected package versions in a machine-readable format and is exported by GitHub Security Advisories, the PyPI Advisory Database, and others <d-cite key="osvschema"></d-cite>. Tools such as pip-audit <d-cite key="pipAudit"></d-cite> and Dependabot <d-cite key="dependabot"></d-cite> match a project's dependencies against these records automatically, although records alone do not ensure action <d-cite key="kula2018developers"></d-cite>. In security, a published vulnerability is no cause for embarrassment. Known deviations should be treated the same way: what matters is not that they occurred, but that they become visible and get fixed.
 
@@ -394,7 +394,7 @@ This sketch leaves several questions open.
 Independent implementations of the same algorithm often produce slightly different results <d-cite key="herbold2023differential"></d-cite>, and PyOD's biased standard deviation has little effect. An advisory would therefore need a criterion, e.g., that the deviation changes the ranking on a toy example, as PyOD's PCA score does ([A short example](#a-short-example)). Disagreements between reporters and maintainers are to be expected. Coordinated flaw disclosure handles them with a panel of independent adjudicators that decides when a vendor rejects a report <d-cite key="cattell2024cfd"></d-cite>, and a similar panel could decide whether a deviation is recorded.
 
 **Precision of matching**\
-Matching on imports misses models instantiated by name (as in PyCaret), copied source code, and unpublished code. Moreover, existing papers contain no provenance statements. For the existing literature, matching will therefore mostly produce records that require manual review.
+Matching on imports misses models instantiated by name, copied source code, and unpublished code. Moreover, existing papers contain no provenance statements. For the existing literature, matching will therefore mostly produce records that require manual review.
 
 **Affected does not mean wrong**\
 A confirmed record states that the reported numbers were not obtained with the cited method. It does not state that the conclusions of the paper are wrong. In ADBench, PCA is one of 30 baselines, and the benchmark's main findings still hold (see [How far it spread](#impact)).
@@ -408,9 +408,7 @@ Who curates advisories, who hosts them, and why reporters and maintainers would 
 ## Conclusion
 
 PyOD's PCA detector cites Shyu et al., but scores observations by a weighted sum of Euclidean 
-distances to the eigenvector tips instead of by variance-normalized projections. In higher 
-dimensions this score depends on the arbitrary sign of each eigenvector and is approximately 
-proportional to the distance from the center. The detector is therefore largely insensitive to anomalies that violate the correlation structure without lying far from the center. Replacing the distances with squared projections normalized by the eigenvalues makes the score sign-invariant and turns it into the squared Mahalanobis distance.
+distances to the eigenvector tips instead of by variance-normalized projections. This score depends on the arbitrary sign of each eigenvector, most noticeably in low dimensions. In higher dimensions, the influence of the sign fades, but the score approaches a scaled distance from the center. The detector is therefore largely insensitive to anomalies that violate the correlation structure without lying far from the center.
 
 The fix changes the results in both directions. On ADBench, ROC AUC and AP change substantially 
 depending on the dataset, and neither average difference is significant. The 
