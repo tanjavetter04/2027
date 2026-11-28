@@ -82,7 +82,7 @@ First, we take the case apart: we recap what the cited method computes, show whe
 
 ### What the cited method computes
 
-PCA is a classical method for dimensionality reduction <d-cite key="Jolliffe2002Principal"></d-cite>. It finds orthogonal directions, the principal components, ordered by how much of the data's variance they explain. In dimensionality reduction, one usually keeps only the major principal components, since they capture most of the variance. PCA-based anomaly detection builds on the same idea: observations that lie far from the subspace spanned by the major principal components are flagged as anomalies. In addition, it can make use of the minor components <d-cite key="shyu2003"></d-cite>. While the major components describe the dominant variation of normal data, the minor components have very little variance and therefore encode near-linear dependencies among the features. This holds, as described by Shyu et. al, if the features are standardized. As a result, they react strongly to observations that violate the correlation structure of the normal data.
+PCA is a classical method for dimensionality reduction <d-cite key="Jolliffe2002Principal"></d-cite>. It finds orthogonal directions, the principal components, ordered by how much of the data's variance they explain. In dimensionality reduction, one usually keeps only the major principal components, since they capture most of the variance. PCA-based anomaly detection builds on the same idea: observations that lie far from the subspace spanned by the major principal components are flagged as anomalies. In addition, it can make use of the minor components <d-cite key="shyu2003"></d-cite>. While the major components describe the dominant variation of normal data, the minor components have very little variance. If all features are standardized to unit variance, this can only happen when features are nearly linearly dependent. The minor components then react strongly to observations that violate the correlation structure of the normal data.
 
 Shyu et al. <d-cite key="shyu2003"></d-cite> build the PCC on this idea. In the following we summarize the parts needed for the anomaly score. The full classifier is described in [Appendix A](#appendix-a). 
 
@@ -94,7 +94,9 @@ The eigenvalues and eigenvectors are obtained from an eigendecomposition of the 
 The key quantity is the $$i$$-th principal component $$y_i$$. It is calculated by projecting a standardized observation $$\mathbf{z}$$ onto the $$i$$-th eigenvector $$\mathbf{e}_i$$:
 
 <p>
-$$y_i = \mathbf{e}_i^\top \mathbf{z} = e_{i1} z_1 + e_{i2} z_2 + \dots + e_{ip} z_p $$
+$$
+y_i = \mathbf{e}_i^\top \mathbf{z} = e_{i1} z_1 + e_{i2} z_2 + \dots + e_{ip} z_p 
+$$
 </p>
 
 The principal component $$y_i$$ has variance $$\lambda_i$$ on the training data, so $$y_i^2 / \lambda_i$$ represents the squared, variance-normalized distance from the origin along the $$i$$-th principal axis. The sum of $$y_i^2/\lambda_i$$ over all $$p$$ components is the squared Mahalanobis distance <d-cite key="shyu2003,mahalanobis1936generalized"></d-cite>, which is referred by Aggarwal <d-cite key="aggarwal2017"></d-cite> as *soft PCA*.
@@ -241,7 +243,7 @@ The following video shows that both problems persist in three dimensions. It com
 
 <video controls playsinline preload="metadata" style="width: 100%; height: auto;">
     <source
-      src="{{ '/assets/img/2027-04-30-pca-pyod/pca_animation.mp4' | relative_url }}"
+      src="{{ '/assets/img/2027-04-30-reproducible-is-not-verified/pca_animation.mp4' | relative_url }}"
       type="video/mp4"
     >
   Your browser does not support the video tag.
